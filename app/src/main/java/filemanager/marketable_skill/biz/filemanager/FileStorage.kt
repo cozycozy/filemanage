@@ -108,33 +108,53 @@ class FileStorage : AppCompatActivity() {
         Log.i(TAG, "Can use:" + getExternalMemoryMoutedPath()?.getAbsolutePath());
         tViewA?.text = getExternalMemoryMoutedPath()?.getAbsolutePath();
 
-        val path = Environment.getDataDirectory().absolutePath
+        val path = Environment.getDataDirectory().path
         Log.d(TAG,"path : " + path)
 
         val statFs = StatFs(path)
 
-        val total = (statFs.blockSizeLong * statFs.availableBlocksLong) / 1024
-        val free = (statFs.blockSizeLong * statFs.blockCountLong) / 1024
+        val total = (statFs.blockSizeLong * statFs.blockCountLong) / (1024 * 1024)
+        val free = (statFs.blockSizeLong * statFs.availableBlocksLong) / (1024 * 1024)
+        val FreeSpace_i = Environment.getDataDirectory().freeSpace / (1024 * 1024)
 
         Log.i(TAG,"---------- SD Card Info --------");
         Log.i(TAG,"Total = " + df.format(total));
         Log.i(TAG,"Free  = " + df.format(free));
         Log.i(TAG,"--------------------------------");
 
-        tViewB?.text = "total: " + total.toString() + " / free: " + free.toString()
+        tViewB?.text = "Path: " + path + " / total(M): " + total.toString() + " / free(M): " + FreeSpace_i +"/" + free.toString()
 
         val Externalpath  = Environment.getExternalStorageDirectory().absolutePath
         Log.d(TAG, "Externalpath:" + Externalpath);
         val statExFs = StatFs(Externalpath);
-        val Externaltotal = (statExFs.blockSizeLong * statExFs.availableBlocksLong) / 1024
-        val Externalfree = (statExFs.blockSizeLong * statExFs.blockCountLong) / 1024
-
+        val Externaltotal = (statExFs.blockSizeLong * statExFs.blockCountLong) / (1024 * 1024)
+        val Externalfree = (statExFs.blockSizeLong * statExFs.availableBlocksLong) / (1024 * 1024)
+        val Freespace = Environment.getExternalStorageDirectory().freeSpace / (1024 * 1024)
         Log.i(TAG,"---------- SD Card Info --------");
         Log.i(TAG,"Total = " + df.format(Externaltotal));
         Log.i(TAG,"Free  = " + df.format(Externalfree));
         Log.i(TAG,"--------------------------------");
 
-        tViewC?.setText("Externaltotal:" + Externaltotal.toString() + " / Externalfree:" + Externalfree.toString());
+       // tViewC?.setText("ExternalPath: " + Externalpath + " / Externaltotal(M):" + Externaltotal.toString() + " / Externalfree(M):" + Freespace + "/" + Externalfree.toString());
+
+        val files = File(Externalpath).listFiles()
+        var list : ArrayList<String> = ArrayList<String>()
+        var i = 0
+        for (file in files ) {
+            if (files[i].isFile()){
+                list?.add(files[i].name)
+            }
+            i++
+        }
+
+        var filename = ""
+        var ii = 0
+        for (i in list!!) {
+            filename = filename + list[ii]
+            ii++
+        }
+
+        tViewC?.text = filename
 
     }
 
