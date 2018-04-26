@@ -1,9 +1,11 @@
 package filemanager.marketable_skill.biz.filemanager
 
+import android.content.ContentResolver
 import android.os.Bundle
 import android.os.Environment
 import android.os.PersistableBundle
 import android.os.StatFs
+import android.provider.MediaStore
 import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
@@ -20,6 +22,14 @@ class FileStorage : AppCompatActivity() {
     var tViewA : TextView? = null
     var tViewB : TextView? = null
     var tViewC : TextView? = null
+    var tViewD : TextView? = null
+
+    //外部ファイルリスト
+    var filelist : ArrayList<File> = ArrayList<File>()
+
+    //内部ファイルリスト
+    var filelist2 : ArrayList<File> = ArrayList<File>()
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,10 +55,13 @@ class FileStorage : AppCompatActivity() {
         tViewA = TextView(this)
         tViewB = TextView(this)
         tViewC = TextView(this)
+        tViewD = TextView(this)
 
         layout.addView(tViewA)
         layout.addView(tViewB)
         layout.addView(tViewC)
+        layout.addView(tViewD)
+
 
 //        LinearLayout layout = new LinearLayout(this);
 //        layout.setOrientation(LinearLayout.VERTICAL);
@@ -137,25 +150,93 @@ class FileStorage : AppCompatActivity() {
 
        // tViewC?.setText("ExternalPath: " + Externalpath + " / Externaltotal(M):" + Externaltotal.toString() + " / Externalfree(M):" + Freespace + "/" + Externalfree.toString());
 
-        val files = File(Externalpath).listFiles()
-        var list : ArrayList<String> = ArrayList<String>()
-        var i = 0
+        var files = File(Externalpath).listFiles()
+
         for (file in files ) {
-            if (files[i].isFile()){
-                list?.add(files[i].name)
+            if (file.isDirectory){
+                pickupFiles(file)
+            } else if (file.isFile){
+                filelist.add(file)
             }
-            i++
         }
 
         var filename = ""
-        var ii = 0
-        for (i in list!!) {
-            filename = filename + list[ii]
-            ii++
+        for (file in filelist) {
+            filename = filename + " / " + file
         }
 
-        tViewC?.text = filename
+        tViewC?.text = "外部ストレージ" + filename
 
+        searchExternalImages()
+
+//        var files2 = File(path).listFiles()
+//
+//        for (file in files2 ) {
+//            if (file.isDirectory){
+//                pickupFiles(file)
+//            } else if (file.isFile){
+//                filelist2.add(file)
+//            }
+//        }
+//
+//        filename = ""
+//        for (file in filelist2) {
+//            filename = filename + file
+//        }
+//
+//        tViewD?.text = "内部ストレージ:" + filename
+
+    }
+
+    private fun searchExternalImages() {
+
+        var cr : ContentResolver = contentResolver
+
+        var projection : Array<String> = arrayOf(
+                MediaStore.Images.Media.DATA,
+            MediaStore.Images.Media.DISPLAY_NAME,
+            MediaStore.Images.Media.SIZE,
+            MediaStore.Images.Media.HEIGHT,
+            MediaStore.Images.Media.WIDTH,
+            MediaStore.Images.Media.DATE_MODIFIED)
+
+        var cursor = cr.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                projection,null,null,null)
+
+        var pathIndex = cursor.getColumnIndex(MediaStore.Images.Media.DATA)
+        var nameIndex = cursor.getColumnIndex(MediaStore.Images.Media.DISPLAY_NAME)
+        var sizeIndex = cursor.getColumnIndex(MediaStore.Images.Media.SIZE)
+        var heightIndex = cursor.getColumnIndex(MediaStore.Images.Media.HEIGHT)
+        var widthIndex = cursor.getColumnIndex(MediaStore.Images.Media.WIDTH)
+        var modify_date_Index = cursor.getColumnIndex(MediaStore.Images.Media.DATE_MODIFIED)
+
+        cursor.moveToFirst()
+
+        while (!cursor.isAfterLast){
+            Log.d("CursolInfo","画像パス = " + cursor.getString(pathIndex))
+            Log.d("CursolInfo","画像名 = " + cursor.getString(nameIndex))
+            Log.d("CursolInfo","サイズ = " + cursor.getString(sizeIndex))
+            Log.d("CursolInfo","高さ = " + cursor.getString(heightIndex))
+            Log.d("CursolInfo","幅 = " + cursor.getString(widthIndex))
+            Log.d("CursolInfo","更新日付 = " + cursor.getString(modify_date_Index))
+            cursor.moveToNext()
+        }
+
+    }
+
+    fun pickupFiles(dir : File){
+
+        val checkFiles : Array<out File> = dir.listFiles()
+
+        for (file in checkFiles){
+            if (file.isDirectory){
+                pickupFiles(file)
+            } else if (file.isFile) {
+                filelist.add(file)
+            } else{
+                Log.d("File Info", "不明のファイルのためスキップしました" + file.name)
+            }
+        }
     }
 
 //    @Override
