@@ -6,4 +6,8 @@
     <string name="title_activity_test">TestActivity</string>
     <string name="appcount_label">AppManager</string>
     <string name="title_activity_file_storage">FileStorage</string>
+    <string name="title_item_list">Items</string>
+    <string name="title_item_detail">Item Detail</string>
+    <string name="title_inneritem_list">innerItems</string>
+    <string name="title_inneritem_detail">innerItem Detail</string>
 </resources>
