@@ -1,10 +1,10 @@
 package filemanager.marketable_skill.biz.filemanager
 
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
-import android.support.design.widget.BottomNavigationView
 import android.support.v7.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_home.*
-import android.content.pm.PackageManager
 
 class HomeActivity : AppCompatActivity() {
 
@@ -16,7 +16,15 @@ class HomeActivity : AppCompatActivity() {
 
 //        navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener)
 
+        innerStrageButton.setOnClickListener{
+            val intent = Intent(this, innerItemDetailActivity::class.java)
+            startActivity(intent)
 
+//            val intent = Intent(v.context, innerItemDetailActivity::class.java).apply {
+//                putExtra(innerItemDetailFragment.ARG_ITEM_ID, item.id)
+//            }
+//            v.context.startActivity(intent)
+        }
 
 
     }

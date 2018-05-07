@@ -3,16 +3,12 @@ package filemanager.marketable_skill.biz.filemanager
 import android.content.ContentResolver
 import android.os.Bundle
 import android.os.Environment
-import android.os.PersistableBundle
 import android.os.StatFs
 import android.provider.MediaStore
-import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.widget.LinearLayout
 import android.widget.TextView
-
-import kotlinx.android.synthetic.main.activity_file_storage.*
 import java.io.File
 import java.text.DecimalFormat
 
@@ -219,6 +215,7 @@ class FileStorage : AppCompatActivity() {
             Log.d("CursolInfo","高さ = " + cursor.getString(heightIndex))
             Log.d("CursolInfo","幅 = " + cursor.getString(widthIndex))
             Log.d("CursolInfo","更新日付 = " + cursor.getString(modify_date_Index))
+            
             cursor.moveToNext()
         }
 
