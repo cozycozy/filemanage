@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
 import android.view.MenuItem
+import filemanager.marketable_skill.biz.filemanager.extentions.DetailInfo
 import kotlinx.android.synthetic.main.activity_inneritem_detail.*
 
 /**
@@ -28,6 +29,10 @@ class innerItemDetailActivity : AppCompatActivity() {
         // Show the Up button in the action bar.
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
+        d_file_name.text = intent.getStringExtra(DetailInfo.NAME.name)
+        d_file_size.text = intent.getStringExtra(DetailInfo.STORAGE.name)
+        d_file_path.text = intent.getStringExtra(DetailInfo.PATH.name)
+
         // savedInstanceState is non-null when there is fragment state
         // saved from previous configurations of this activity
         // (e.g. when rotating the screen from portrait to landscape).
@@ -37,18 +42,18 @@ class innerItemDetailActivity : AppCompatActivity() {
         //
         // http://developer.android.com/guide/components/fragments.html
         //
-        if (savedInstanceState == null) {
-            // Create the detail fragment and add it to the activity
-            // using a fragment transaction.
-            val arguments = Bundle()
-            arguments.putString(innerItemDetailFragment.ARG_ITEM_ID,
-                    intent.getStringExtra(innerItemDetailFragment.ARG_ITEM_ID))
-            val fragment = innerItemDetailFragment()
-            fragment.arguments = arguments
-            supportFragmentManager.beginTransaction()
-                    .add(R.id.inneritem_detail_container, fragment)
-                    .commit()
-        }
+//        if (savedInstanceState == null) {
+//            // Create the detail fragment and add it to the activity
+//            // using a fragment transaction.
+//            val arguments = Bundle()
+//            arguments.putString(innerItemDetailFragment.ARG_ITEM_ID,
+//                    intent.getStringExtra(innerItemDetailFragment.ARG_ITEM_ID))
+//            val fragment = innerItemDetailFragment()
+//            fragment.arguments = arguments
+//            supportFragmentManager.beginTransaction()
+//                    .add(R.id.inneritem_detail_container, fragment)
+//                    .commit()
+//        }
     }
 
     override fun onOptionsItemSelected(item: MenuItem) =

@@ -1,10 +1,14 @@
 package filemanager.marketable_skill.biz.filemanager
 
 import android.content.Intent
+import android.graphics.drawable.Drawable
+import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.RecyclerView
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,6 +18,11 @@ import filemanager.marketable_skill.biz.filemanager.dummy.DummyContent
 import kotlinx.android.synthetic.main.activity_inneritem_list.*
 import kotlinx.android.synthetic.main.inneritem_list.*
 import kotlinx.android.synthetic.main.inneritem_list_content.view.*
+import java.io.File
+import android.widget.Toast
+import android.support.annotation.NonNull
+import filemanager.marketable_skill.biz.filemanager.extentions.DetailInfo
+
 
 /**
  * An activity representing a list of Pings. This activity
@@ -30,7 +39,12 @@ class innerItemListActivity : AppCompatActivity() {
      * device.
      */
     private var mTwoPane: Boolean = false
-    private var mDataList : ArrayList<FileInfoDate> = ArrayList<FileInfoDate>()
+    private var mDataList : ArrayList<FileInfoData> = ArrayList<FileInfoData>()
+
+    private val TAG : String = "InnerItemListActivity"
+
+    //外部ファイルリスト
+    var filelist : ArrayList<File> = ArrayList<File>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,58 +66,148 @@ class innerItemListActivity : AppCompatActivity() {
             mTwoPane = true
         }
 
+        var externalMemPath: String? = getExternalMemoryMoutedPath()?.getAbsolutePath()
+        var internalMemPath = Environment.getDataDirectory().path
+
+        Log.i(TAG, "Can use:" + getExternalMemoryMoutedPath()?.getAbsolutePath());
+
+        searchFiles(externalMemPath!!)
         setupRecyclerView(inneritem_list)
     }
 
-    private fun setupRecyclerView(recyclerView: RecyclerView) {
-        recyclerView.adapter = SimpleItemRecyclerViewAdapter(this, mDataList, mTwoPane)
-    }
+    fun searchFiles(path : String){
 
-    class SimpleItemRecyclerViewAdapter(private val mParentActivity: innerItemListActivity,
-                                        private val mValues: List<FileInfoDate>,
-                                        private val mTwoPane: Boolean) :
-            RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder>() {
+        var files = File(path).listFiles()
 
-        private val mOnClickListener: View.OnClickListener
+        val res = getResources()
 
-        init {
-            mOnClickListener = View.OnClickListener { v ->
-                val item = v.tag as DummyContent.DummyItem
-                if (mTwoPane) {
-                    val fragment = innerItemDetailFragment().apply {
-                        arguments = Bundle()
-                        arguments.putString(innerItemDetailFragment.ARG_ITEM_ID, item.id)
-                    }
-                    mParentActivity.supportFragmentManager
-                            .beginTransaction()
-                            .replace(R.id.inneritem_detail_container, fragment)
-                            .commit()
-                } else {
-                    val intent = Intent(v.context, innerItemDetailActivity::class.java).apply {
-                        putExtra(innerItemDetailFragment.ARG_ITEM_ID, item.id)
-                    }
-                    v.context.startActivity(intent)
+        for (file in files ) {
+            if (file.isDirectory){
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    mDataList.add(FileInfoData(res.getDrawable(R.drawable.abc_action_bar_item_background_material,null),
+                            file.name,
+                            "フォルダ",
+                            file.lastModified().toString()))
+                }
+            } else if (file.isFile){
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    mDataList.add(FileInfoData(res.getDrawable(R.drawable.abc_action_bar_item_background_material,null),
+                            file.name,
+                            file.totalSpace.toString(),
+                            file.lastModified().toString()))
                 }
             }
         }
 
+    }
+
+    fun pickupFiles(dir : File){
+
+        val checkFiles : Array<out File> = dir.listFiles()
+
+        for (file in checkFiles){
+            if (file.isDirectory){
+                pickupFiles(file)
+            } else if (file.isFile) {
+                filelist.add(file)
+            } else{
+                Log.d("File Info", "不明のファイルのためスキップしました" + file.name)
+            }
+        }
+    }
+
+    // 外部メモリーが使えるかを返す
+    fun canUseExternalMemory() : Boolean {
+        val state = Environment.getExternalStorageState()
+        return state.equals(Environment.MEDIA_MOUNTED)
+    }
+
+    // 外部メモリーが使える場合に外部メモリーのマウントされているパスを取得する
+    fun getExternalMemoryMoutedPath() : File? {
+
+        if (canUseExternalMemory()) {
+            return Environment.getExternalStorageDirectory()
+        }
+        return null
+    }
+
+    private fun setupRecyclerView(recyclerView: RecyclerView) {
+//        recyclerView.adapter = SimpleItemRecyclerViewAdapter(this, mDataList, mTwoPane)
+
+        val adapter = object : SimpleItemRecyclerViewAdapter(this, mDataList, mTwoPane) {
+            override fun onListClicked(v : View, postion: Int) {
+                val intent = Intent(v.context, innerItemDetailActivity::class.java).apply {
+                    putExtra(DetailInfo.NAME.name, mDataList[postion].fileName)
+                    putExtra(DetailInfo.STORAGE.name, mDataList[postion].fileSize)
+                    putExtra(DetailInfo.PATH.name, mDataList[postion].fileDate)
+                }
+                v.context.startActivity(intent)
+
+            }
+        }
+        recyclerView.adapter = adapter
+    }
+
+
+    open class SimpleItemRecyclerViewAdapter(private val mParentActivity: innerItemListActivity,
+                                        private val mValues: List<FileInfoData>,
+                                        private val mTwoPane: Boolean) :
+            RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder>() {
+
+//        private val mOnClickListener: View.OnClickListener
+//
+//        init {
+//            mOnClickListener = View.OnClickListener() { v ->
+//
+//                if (mTwoPane) {
+//                    val fragment = innerItemDetailFragment().apply {
+//                        arguments = Bundle()
+//                        arguments.putString(innerItemDetailFragment.ARG_ITEM_ID, "1")
+//                    }
+//                    mParentActivity.supportFragmentManager
+//                            .beginTransaction()
+//                            .replace(R.id.inneritem_detail_container, fragment)
+//                            .commit()
+//                } else {
+//
+//                    val intent = Intent(v.context, innerItemDetailActivity::class.java).apply {
+//
+//                    putExtra(innerItemDetailFragment.ARG_ITEM_ID, "1")
+//
+//                    }
+//                    v.context.startActivity(intent)
+//                }
+//            }
+//        }
+
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
             val view = LayoutInflater.from(parent.context)
                     .inflate(R.layout.inneritem_list_content, parent, false)
-            return ViewHolder(view)
+
+            val holder = ViewHolder(view)
+            holder.itemView.setOnClickListener {
+                val position = holder.adapterPosition
+                onListClicked(view, position)
+            }
+
+            return holder
+        }
+
+        open fun onListClicked(view : View, postion : Int){
+
         }
 
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             val item = mValues[position]
             holder.mfileImage.setImageDrawable(item.image)
+            holder.mfileSize.text = item.fileSize
             holder.mfileName.text = item.fileName
-            holder.mfileSize.text = item.fileSize.toString()
             holder.mfileDate.text = item.fileDate
 
-            with(holder.itemView) {
-                tag = item
-                setOnClickListener(mOnClickListener)
-            }
+//            with(holder.itemView) {
+//                tag = item
+//                setOnClickListener(mOnClickListener)
+//            }
         }
 
         override fun getItemCount(): Int {
